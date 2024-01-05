@@ -1,12 +1,8 @@
 package org.bidribidi.currency.config;
 
-import org.bidribidi.currency.utils.SqlScriptUtility;
-
-import java.io.File;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
-import java.util.Objects;
 
 public class DatabaseConfig {
 
