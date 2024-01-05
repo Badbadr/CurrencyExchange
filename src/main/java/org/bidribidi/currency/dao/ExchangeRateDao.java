@@ -23,7 +23,7 @@ public class ExchangeRateDao {
         this.connection = connection;
     }
 
-    public ExchangeRate addCurrency(int baseCurrencyId, int targetCurrencyId, double rate) throws SQLException {
+    public ExchangeRate addExchangeRate(int baseCurrencyId, int targetCurrencyId, double rate) throws SQLException {
         try (PreparedStatement ps = connection.prepareStatement(INSERT_RATE_STATEMENT)){
             ps.setInt(1, baseCurrencyId);
             ps.setInt(2, targetCurrencyId);

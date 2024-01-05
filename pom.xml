@@ -28,11 +28,11 @@
             <version>6.1.0-M1</version>
             <scope>provided</scope>
         </dependency>
-        <!-- Run sql script -->
+        <!-- JSON -->
         <dependency>
-            <groupId>org.mybatis</groupId>
-            <artifactId>mybatis</artifactId>
-            <version>3.5.13</version>
+            <groupId>org.json</groupId>
+            <artifactId>json</artifactId>
+            <version>20230618</version>
         </dependency>
     </dependencies>
 

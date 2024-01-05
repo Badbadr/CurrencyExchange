@@ -23,7 +23,7 @@ public class ExchangeRateService {
     }
 
     public ExchangeRate addExchangeRate(int baseCurrencyId, int targetCurrencyId, double rate) throws SQLException {
-        return exchangeRateDao.addCurrency(baseCurrencyId, targetCurrencyId, rate);
+        return exchangeRateDao.addExchangeRate(baseCurrencyId, targetCurrencyId, rate);
     }
 
     public ExchangeRate updateExchangeRate(int id, int baseCurrencyId, int targetCurrencyId, double rate) throws SQLException {
