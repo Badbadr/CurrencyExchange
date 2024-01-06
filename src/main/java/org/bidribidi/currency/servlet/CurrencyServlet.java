@@ -7,6 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.bidribidi.currency.config.DatabaseConfig;
 import org.bidribidi.currency.dao.CurrencyDao;
+import org.bidribidi.currency.service.CurrencyService;
 import org.json.JSONArray;
 import org.json.JSONObject;
 import org.sqlite.util.StringUtils;
@@ -17,50 +18,35 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@WebServlet("/currency/*")
+@WebServlet(urlPatterns = {"/currency/*", "/currencies"})
 public class CurrencyServlet extends HttpServlet {
-    private CurrencyDao currencyDao;
+    private CurrencyService currencyService;
 
     @Override
     public void init() throws ServletException {
         super.init();
         DatabaseConfig databaseConfig = new DatabaseConfig();
-        this.currencyDao = new CurrencyDao(databaseConfig.getConnection());
+        this.currencyService = new CurrencyService(new CurrencyDao(databaseConfig.getConnection()));
     }
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        String queryParams = req.getQueryString();
-        if (queryParams == null) {
+        if ("/currencies".equals(req.getServletPath())) {
             try {
-                resp.getWriter().write(new JSONArray(currencyDao.getAllCurrencies()).toString());
+                resp.getWriter().write(new JSONArray(currencyService.getAllCurrencies()).toString());
             } catch (SQLException ex) {
                 throw new RuntimeException(ex);
             }
-        }
+        } else {
+            try{
+                String code = req.getPathInfo().split("/")[1];
 
-        try{
-            Map<String, String> queryParamsMap = Utils.getQueryParams(req);
-            String id = queryParamsMap.get("id");
-            String code = queryParamsMap.get("code");
-            String fullname = queryParamsMap.get("fullname");
-            String sign = queryParamsMap.get("sign");
-
-            if (queryParamsMap.size() > 1) {
-                throw new IllegalArgumentException("Too many query parameters");
+                if (code != null) {
+                    resp.getWriter().write(new JSONObject(currencyService.getCurrencyByCode(code)).toString());
+                }
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
             }
-
-            if (id != null) {
-                resp.getWriter().write(new JSONObject(currencyDao.getCurrencyById(Integer.parseInt(id))).toString());
-            } else if (code != null) {
-                throw new IllegalArgumentException("get by code not implemented yet");
-            } else if (fullname != null) {
-                throw new IllegalArgumentException("get by fullname not implemented yet");
-            } else if (sign != null) {
-                throw new IllegalArgumentException("get by sign not implemented yet");
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
         }
     }
 
@@ -71,17 +57,17 @@ public class CurrencyServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        String payload = Utils.getBody(req);
-        JSONObject jsonObject = new JSONObject(payload);
-        String code = (String) jsonObject.get("code");
-        String fullname = (String) jsonObject.get("fullname");
-        String sign = (String) jsonObject.get("sign");
+        if ("/currencies".equals(req.getServletPath())) {
+            String code = req.getParameter("code");
+            String fullname = req.getParameter("fullname");
+            String sign = req.getParameter("sign");
 
-        try {
-            resp.getWriter().write(new JSONObject(currencyDao.addCurrency(code, fullname, sign))
-                    .toString());
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
+            try {
+                resp.getWriter().write(new JSONObject(currencyService.addCurrency(code, fullname, sign))
+                        .toString());
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
@@ -98,8 +84,8 @@ public class CurrencyServlet extends HttpServlet {
         if (id == null){
             throw new IllegalArgumentException("id cannot be null");
         }
-        resp.getWriter().write(new JSONObject(currencyDao.updateCurrency(Integer.parseInt(id), code, fullname, sign))
-                .toString());
+        resp.getWriter().write(new JSONObject(currencyService.updateCurrency(
+                Integer.parseInt(id), code, fullname, sign)).toString());
     }
 
     @Override
@@ -109,7 +95,7 @@ public class CurrencyServlet extends HttpServlet {
         if (id == null){
             throw new IllegalArgumentException("id cannot be null");
         }
-        int deletedId = currencyDao.deleteCurrency(Integer.parseInt(id));
+        int deletedId = currencyService.deleteCurrency(Integer.parseInt(id));
         resp.getWriter().write(new JSONObject("{\"id\":" + deletedId + "}").toString());
 
     }

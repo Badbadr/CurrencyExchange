@@ -17,6 +17,10 @@ public class CurrencyService {
         return currencyDao.getCurrencyById(id);
     }
 
+    public Currency getCurrencyByCode(String code) throws SQLException {
+        return currencyDao.getCurrencyByCode(code);
+    }
+
     public List<Currency> getAllCurrencies() throws SQLException {
         return currencyDao.getAllCurrencies();
     }

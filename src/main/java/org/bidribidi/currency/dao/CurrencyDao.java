@@ -14,6 +14,7 @@ public class CurrencyDao {
 
     private final static String SELECT_ALL_STATEMENT = "select * from currencies";
     private final static String SELECT_CURRENCY_BY_ID_STATEMENT = "select id, code, fullname, sign from currencies where id = ?";
+    private final static String SELECT_CURRENCY_BY_CODE_STATEMENT = "select id, code, fullname, sign from currencies where code = ?";
     private final static String INSERT_CURRENCY_STATEMENT = "insert into currencies (code, fullname, sign) values (?, ?, ?)";
     private final static String UPDATE_CURRENCY_BY_ID_STATEMENT = "update currencies set code = ?, fullname = ?, sign = ? where id = ?";
     private final static String DELETE_CURRENCY_BY_ID_STATEMENT = "delete from currencies where id = ?";
@@ -104,4 +105,22 @@ public class CurrencyDao {
         return id;
     }
 
+    public Currency getCurrencyByCode(String code) {
+        try (PreparedStatement ps = connection.prepareStatement(SELECT_CURRENCY_BY_CODE_STATEMENT)) {
+            ps.setString(1, code);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return new Currency(
+                    rs.getInt("id"),
+                    rs.getString("code"),
+                    rs.getString("fullname"),
+                    rs.getString("sign")
+                );
+            } else {
+                throw new NoSuchElementException("Currency with code " + code + " not found");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

@@ -2,37 +2,37 @@ package org.bidribidi.currency.model;
 
 public class ExchangeRate {
     private Integer id;
-    private int baseCurrencyId;
-    private int targetCurrencyId;
+    private Currency baseCurrency;
+    private Currency targetCurrency;
     private double rate;
 
-    public ExchangeRate(int baseCurrencyId, int targetCurrencyId, double rate) {
-        this.baseCurrencyId = baseCurrencyId;
-        this.targetCurrencyId = targetCurrencyId;
-        this.rate = rate;
-    }
-
-    public ExchangeRate(Integer id, int baseCurrencyId, int targetCurrencyId, double rate) {
+    public ExchangeRate(Integer id, Currency baseCurrency, Currency targetCurrency, double rate) {
         this.id = id;
-        this.baseCurrencyId = baseCurrencyId;
-        this.targetCurrencyId = targetCurrencyId;
+        this.baseCurrency = baseCurrency;
+        this.targetCurrency = targetCurrency;
         this.rate = rate;
     }
 
-    public int getBaseCurrencyId() {
-        return baseCurrencyId;
+    public ExchangeRate(Currency baseCurrency, Currency targetCurrency, double rate) {
+        this.baseCurrency = baseCurrency;
+        this.targetCurrency = targetCurrency;
+        this.rate = rate;
     }
 
-    public void setBaseCurrencyId(int baseCurrencyId) {
-        this.baseCurrencyId = baseCurrencyId;
+    public Currency getBaseCurrency() {
+        return baseCurrency;
     }
 
-    public int getTargetCurrencyId() {
-        return targetCurrencyId;
+    public void setBaseCurrency(Currency baseCurrency) {
+        this.baseCurrency = baseCurrency;
     }
 
-    public void setTargetCurrencyId(int targetCurrencyId) {
-        this.targetCurrencyId = targetCurrencyId;
+    public Currency getTargetCurrency() {
+        return targetCurrency;
+    }
+
+    public void setTargetCurrency(Currency targetCurrency) {
+        this.targetCurrency = targetCurrency;
     }
 
     public double getRate() {
@@ -51,8 +51,8 @@ public class ExchangeRate {
     public String toString() {
         return "ExchangeRate{" +
                 "id=" + id +
-                ", baseCurrencyId=" + baseCurrencyId +
-                ", targetCurrencyId=" + targetCurrencyId +
+                ", baseCurrencyId=" + baseCurrency +
+                ", targetCurrencyId=" + targetCurrency +
                 ", rate=" + rate +
                 '}';
     }
