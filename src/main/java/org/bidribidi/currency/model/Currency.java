@@ -1,5 +1,7 @@
 package org.bidribidi.currency.model;
 
+import org.bidribidi.currency.dto.CurrencyRequest;
+
 public class Currency {
     private Integer id;
     private String code;
@@ -10,6 +12,19 @@ public class Currency {
         this.code = code;
         this.name = fullname;
         this.sign = sign;
+    }
+
+    public Currency(CurrencyRequest currencyRequest) {
+        this.code = currencyRequest.code();
+        this.name = currencyRequest.fullname();
+        this.sign = currencyRequest.sign();
+    }
+
+    public Currency(Integer id, CurrencyRequest currencyRequest) {
+        this.id = id;
+        this.code = currencyRequest.code();
+        this.name = currencyRequest.fullname();
+        this.sign = currencyRequest.sign();
     }
 
     public Currency(Integer id, String code, String fullname, String sign) {

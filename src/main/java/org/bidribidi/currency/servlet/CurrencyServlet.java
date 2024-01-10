@@ -1,24 +1,21 @@
 package org.bidribidi.currency.servlet;
 
 import jakarta.servlet.ServletException;
-import jakarta.servlet.ServletRequest;
-import jakarta.servlet.ServletResponse;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.bidribidi.currency.config.DatabaseConfig;
 import org.bidribidi.currency.dao.CurrencyDao;
+import org.bidribidi.currency.dto.CurrencyRequest;
+import org.bidribidi.currency.dto.ErrorResponse;
 import org.bidribidi.currency.service.CurrencyService;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.sqlite.util.StringUtils;
 
 import java.io.IOException;
 import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @WebServlet(urlPatterns = {"/currency/*", "/currencies", "/currencies/*"})
 public class CurrencyServlet extends HttpServlet {
@@ -37,6 +34,7 @@ public class CurrencyServlet extends HttpServlet {
             try {
                 resp.getWriter().write(new JSONArray(currencyService.getAllCurrencies()).toString());
             } catch (SQLException ex) {
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 resp.sendError(500, ex.getMessage());
             }
         } else {
@@ -60,15 +58,23 @@ public class CurrencyServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         if ("/currencies".equals(req.getServletPath())) {
-            String code = req.getParameter("code");
-            String fullname = req.getParameter("name");
-            String sign = req.getParameter("sign");
+            CurrencyRequest currencyRequest = new CurrencyRequest(
+                req.getParameter("code"),
+                req.getParameter("name"),
+                req.getParameter("sign")
+            );
 
             try {
-                resp.getWriter().write(new JSONObject(currencyService.addCurrency(code, fullname, sign))
+                resp.getWriter().write(new JSONObject(currencyService.addCurrency(currencyRequest))
                         .toString());
             } catch (SQLException e) {
                 resp.sendError(500, e.getMessage());
+            } catch (IllegalArgumentException e2) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write(new JSONObject(
+                        new ErrorResponse(HttpServletResponse.SC_BAD_REQUEST, e2.getMessage())
+                ).toString());
+
             }
         }
     }
@@ -79,15 +85,28 @@ public class CurrencyServlet extends HttpServlet {
         String payload = Utils.getBody(req);
         JSONObject jsonObject = new JSONObject(payload);
         String id = queryParams.get("id");
-        String code = (String) jsonObject.get("code");
-        String fullname = (String) jsonObject.get("fullname");
-        String sign = (String) jsonObject.get("sign");
+
+        CurrencyRequest currencyRequest = new CurrencyRequest(
+            (String) jsonObject.get("code"),
+            (String) jsonObject.get("fullname"),
+            (String) jsonObject.get("sign")
+        );
 
         if (id == null){
             resp.sendError(500, "id cannot be null");
         } else {
-            resp.getWriter().write(new JSONObject(currencyService.updateCurrency(
-                    Integer.parseInt(id), code, fullname, sign)).toString());
+            try {
+                resp.getWriter().write(new JSONObject(currencyService.updateCurrency(
+                    Integer.parseInt(id), currencyRequest)).toString());
+            } catch (SQLException e) {
+                resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+                resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+            } catch (IllegalArgumentException e2) {
+                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+                resp.getWriter().write(new JSONObject(
+                        new ErrorResponse(HttpServletResponse.SC_BAD_REQUEST, e2.getMessage())
+                ).toString());
+            }
         }
     }
 
@@ -95,7 +114,8 @@ public class CurrencyServlet extends HttpServlet {
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         String code = req.getPathInfo().split("/")[1];
         if (code == null){
-            resp.sendError(500, "code cannot be null");
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "code cannot be null");
         } else {
             int deletedId = currencyService.deleteCurrencyByCode(code);
             resp.getWriter().write(new JSONObject("{\"id\":" + deletedId + "}").toString());

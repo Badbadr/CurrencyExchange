@@ -1,17 +1,21 @@
 package org.bidribidi.currency.service;
 
 import org.bidribidi.currency.dao.ExchangeRateDao;
+import org.bidribidi.currency.dto.ExchangeRateRequest;
 import org.bidribidi.currency.model.Currency;
 import org.bidribidi.currency.model.ExchangeRate;
+import org.bidribidi.currency.service.validators.CurrencyValidator;
 
 import java.sql.SQLException;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import static org.bidribidi.currency.service.validators.ExchangeRateValidator.validate;
+
 public class ExchangeRateService {
 
-    private ExchangeRateDao exchangeRateDao;
-    private CurrencyService currencyService;
+    private final ExchangeRateDao exchangeRateDao;
+    private final CurrencyService currencyService;
 
     public ExchangeRateService(ExchangeRateDao exchangeRateDao, CurrencyService currencyService) {
         this.exchangeRateDao = exchangeRateDao;
@@ -30,17 +34,21 @@ public class ExchangeRateService {
         return exchangeRateDao.getAllExchangeRates();
     }
 
-    public ExchangeRate addExchangeRate(String baseCurrencyCode, String targetCurrencyCode, double rate) throws SQLException {
-        Currency baseCurrency = currencyService.getCurrencyByCode(baseCurrencyCode);
-        Currency targetCurrency = currencyService.getCurrencyByCode(targetCurrencyCode);
-        return addExchangeRate(baseCurrency, targetCurrency, rate);
+    public ExchangeRate addExchangeRate(ExchangeRateRequest exchangeRateRequest) throws SQLException {
+        validate(exchangeRateRequest);
+        Currency baseCurrency = currencyService.getCurrencyByCode(exchangeRateRequest.baseCurrencyCode());
+        Currency targetCurrency = currencyService.getCurrencyByCode(exchangeRateRequest.targetCurrencyCode());
+        return addExchangeRate(baseCurrency, targetCurrency, exchangeRateRequest.rate());
     }
 
-    public ExchangeRate addExchangeRate(Currency baseCurrency, Currency targetCurrency, double rate) throws SQLException {
+    public ExchangeRate addExchangeRate(Currency baseCurrency, Currency targetCurrency, double rate) throws SQLException {;
+        CurrencyValidator.validate(baseCurrency);
+        CurrencyValidator.validate(targetCurrency);
         return exchangeRateDao.addExchangeRate(baseCurrency, targetCurrency, rate);
     }
 
     public ExchangeRate updateExchangeRate(ExchangeRate exchangeRate) throws SQLException {
+        validate(exchangeRate);
         return exchangeRateDao.updateExchangeRate(exchangeRate);
     }
 

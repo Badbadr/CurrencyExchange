@@ -1,5 +1,6 @@
 package org.bidribidi.currency.dao;
 
+import org.bidribidi.currency.dto.CurrencyRequest;
 import org.bidribidi.currency.model.Currency;
 
 import java.sql.Connection;
@@ -26,16 +27,16 @@ public class CurrencyDao {
         this.connection = connection;
     }
 
-    public Currency addCurrency(String code, String fullname, String sign) throws SQLException {
+    public Currency addCurrency(CurrencyRequest currencyRequest) throws SQLException {
         try (PreparedStatement ps = connection.prepareStatement(INSERT_CURRENCY_STATEMENT)){
-            ps.setString(1, code);
-            ps.setString(2, fullname);
-            ps.setString(3, sign);
+            ps.setString(1, currencyRequest.code());
+            ps.setString(2, currencyRequest.fullname());
+            ps.setString(3, currencyRequest.sign());
             int affectedRows = ps.executeUpdate();
         } catch (SQLException e) {
             throw e;
         }
-        return new Currency(code, fullname, sign);
+        return new Currency(currencyRequest);
     }
 
     public List<Currency> getAllCurrencies() throws SQLException {
@@ -78,11 +79,11 @@ public class CurrencyDao {
         return currency;
     }
 
-    public Currency updateCurrency(int id, String code, String fullname, String sign) {
+    public Currency updateCurrency(int id, CurrencyRequest currencyRequest) {
         try(PreparedStatement ps = connection.prepareStatement(UPDATE_CURRENCY_BY_ID_STATEMENT)) {
-            ps.setString(1, code);
-            ps.setString(2, fullname);
-            ps.setString(3, sign);
+            ps.setString(1, currencyRequest.code());
+            ps.setString(2, currencyRequest.fullname());
+            ps.setString(3, currencyRequest.sign());
             ps.setInt(4, id);
             int affectedRows = ps.executeUpdate();
             if (affectedRows == 0) {
@@ -91,7 +92,7 @@ public class CurrencyDao {
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }
-        return new Currency(id, code, fullname, sign);
+        return new Currency(id, currencyRequest);
     }
 
     public int deleteCurrency(int id) {
