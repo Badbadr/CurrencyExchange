@@ -147,12 +147,17 @@ public class ExchangeRateServlet extends HttpServlet {
     }
 
     @Override
-    protected void service(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void service(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         String method = req.getMethod();
+        res.addHeader("Access-Control-Allow-Origin", "http://localhost");
+        res.addHeader("Access-Control-Allow-Headers", "Content-Type");
+        res.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+        res.addHeader("Content-Type", "application/json");
         if (!method.equals("PATCH")) {
-            super.service(req, resp);
+            super.service(req, res);
+        } else {
+            this.doPatch(req, res);
         }
 
-        this.doPatch(req, resp);
     }
 }

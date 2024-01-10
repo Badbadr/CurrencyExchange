@@ -17,7 +17,6 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Map;
-import java.util.NoSuchElementException;
 
 @WebServlet("/exchange")
 public class ExchangeServlet extends HttpServlet {
@@ -59,5 +58,19 @@ public class ExchangeServlet extends HttpServlet {
         } catch (SQLException | IOException e3) {
             throw new RuntimeException(e3);
         }
+    }
+
+    @Override
+    protected void doOptions(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        super.doOptions(req, resp);
+    }
+
+    @Override
+    public void service(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        super.service(req, res);
+        res.addHeader("Access-Control-Allow-Origin", "http://localhost");
+        res.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+        res.addHeader("Access-Control-Allow-Headers", "Content-Type");
+        res.addHeader("Content-Type", "application/json");
     }
 }

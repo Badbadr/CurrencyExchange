@@ -1,6 +1,8 @@
 package org.bidribidi.currency.servlet;
 
 import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
@@ -35,7 +37,7 @@ public class CurrencyServlet extends HttpServlet {
             try {
                 resp.getWriter().write(new JSONArray(currencyService.getAllCurrencies()).toString());
             } catch (SQLException ex) {
-                throw new RuntimeException(ex);
+                resp.sendError(500, ex.getMessage());
             }
         } else {
             try{
@@ -45,7 +47,7 @@ public class CurrencyServlet extends HttpServlet {
                     resp.getWriter().write(new JSONObject(currencyService.getCurrencyByCode(code)).toString());
                 }
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                resp.sendError(500, e.getMessage());
             }
         }
     }
@@ -59,14 +61,14 @@ public class CurrencyServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         if ("/currencies".equals(req.getServletPath())) {
             String code = req.getParameter("code");
-            String fullname = req.getParameter("fullname");
+            String fullname = req.getParameter("name");
             String sign = req.getParameter("sign");
 
             try {
                 resp.getWriter().write(new JSONObject(currencyService.addCurrency(code, fullname, sign))
                         .toString());
             } catch (SQLException e) {
-                throw new RuntimeException(e);
+                resp.sendError(500, e.getMessage());
             }
         }
     }
@@ -82,21 +84,38 @@ public class CurrencyServlet extends HttpServlet {
         String sign = (String) jsonObject.get("sign");
 
         if (id == null){
-            throw new IllegalArgumentException("id cannot be null");
+            resp.sendError(500, "id cannot be null");
+        } else {
+            resp.getWriter().write(new JSONObject(currencyService.updateCurrency(
+                    Integer.parseInt(id), code, fullname, sign)).toString());
         }
-        resp.getWriter().write(new JSONObject(currencyService.updateCurrency(
-                Integer.parseInt(id), code, fullname, sign)).toString());
     }
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Map<String, String> queryParams = Utils.getQueryParams(req);
-        String id = queryParams.get("id");
-        if (id == null){
-            throw new IllegalArgumentException("id cannot be null");
+        if (queryParams.get("code") == null){
+            resp.sendError(500, "code cannot be null");
+        } else {
+            int deletedId = currencyService.deleteCurrencyByCode(queryParams.get("code"));
+            resp.getWriter().write(new JSONObject("{\"id\":" + deletedId + "}").toString());
         }
-        int deletedId = currencyService.deleteCurrency(Integer.parseInt(id));
-        resp.getWriter().write(new JSONObject("{\"id\":" + deletedId + "}").toString());
 
+    }
+
+    @Override
+    public void service(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
+        if (!req.getMethod().equals("PATCH") && !req.getMethod().equals("OPTIONS")) {
+            super.service(req, res);
+        }
+        if (req.getMethod().equals("PATCH")) {
+            this.doPatch(req, res);
+        }
+
+        res.setHeader("Access-Control-Allow-Origin", "http://localhost");
+        res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+        res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
+        res.setHeader("Content-Type", "application/json");
+        res.setHeader("Allow","GET, POST, PUT, DELETE, PATCH, OPTIONS");
     }
 }

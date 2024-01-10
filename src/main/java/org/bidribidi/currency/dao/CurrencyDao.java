@@ -17,7 +17,9 @@ public class CurrencyDao {
     private final static String SELECT_CURRENCY_BY_CODE_STATEMENT = "select id, code, fullname, sign from currencies where code = ?";
     private final static String INSERT_CURRENCY_STATEMENT = "insert into currencies (code, fullname, sign) values (?, ?, ?)";
     private final static String UPDATE_CURRENCY_BY_ID_STATEMENT = "update currencies set code = ?, fullname = ?, sign = ? where id = ?";
+    private final static String DELETE_CURRENCY_BY_CODE_STATEMENT = "delete from currencies where code = ?";
     private final static String DELETE_CURRENCY_BY_ID_STATEMENT = "delete from currencies where id = ?";
+    private final static String ENABLE_FOREIGN_KEYS_STATEMENT = "PRAGMA foreign_keys = on;";
     private final Connection connection;
 
     public CurrencyDao(Connection connection) {
@@ -93,6 +95,7 @@ public class CurrencyDao {
     }
 
     public int deleteCurrency(int id) {
+        enableForeignKeys();
         try(PreparedStatement ps = connection.prepareStatement(DELETE_CURRENCY_BY_ID_STATEMENT)) {
             ps.setInt(1, id);
             int affectedRows = ps.executeUpdate();
@@ -119,6 +122,28 @@ public class CurrencyDao {
             } else {
                 throw new NoSuchElementException("Currency with code " + code + " not found");
             }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    public int deleteCurrencyByCode(String code) {
+        enableForeignKeys();
+        try (PreparedStatement ps = connection.prepareStatement(DELETE_CURRENCY_BY_CODE_STATEMENT)) {
+            ps.setString(1, code);
+            int affectedRows = ps.executeUpdate();
+            if (affectedRows == 0) {
+                throw new NoSuchElementException("Currency with code " + code + " not found");
+            }
+        } catch (SQLException e) {
+            throw new RuntimeException(e);
+        }
+        return 1;
+    }
+
+    private void enableForeignKeys() {
+        try (PreparedStatement ps = connection.prepareStatement(ENABLE_FOREIGN_KEYS_STATEMENT)) {
+            ps.executeUpdate();
         } catch (SQLException e) {
             throw new RuntimeException(e);
         }

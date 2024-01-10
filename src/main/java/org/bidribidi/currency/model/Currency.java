@@ -3,19 +3,19 @@ package org.bidribidi.currency.model;
 public class Currency {
     private Integer id;
     private String code;
-    private String fullname;
+    private String name;
     private String sign;
 
     public Currency(String code, String fullname, String sign) {
         this.code = code;
-        this.fullname = fullname;
+        this.name = fullname;
         this.sign = sign;
     }
 
     public Currency(Integer id, String code, String fullname, String sign) {
         this.id = id;
         this.code = code;
-        this.fullname = fullname;
+        this.name = fullname;
         this.sign = sign;
     }
 
@@ -27,12 +27,12 @@ public class Currency {
         this.code = code;
     }
 
-    public String getFullname() {
-        return fullname;
+    public String getName() {
+        return name;
     }
 
-    public void setFullname(String fullname) {
-        this.fullname = fullname;
+    public void setName(String name) {
+        this.name = name;
     }
 
     public String getSign() {
@@ -52,7 +52,7 @@ public class Currency {
         return "Currency{" +
                 "id=" + id +
                 ", code='" + code + '\'' +
-                ", fullname='" + fullname + '\'' +
+                ", fullname='" + name + '\'' +
                 ", sign='" + sign + '\'' +
                 '}';
     }
