@@ -20,7 +20,7 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@WebServlet(urlPatterns = {"/currency/*", "/currencies"})
+@WebServlet(urlPatterns = {"/currency/*", "/currencies", "/currencies/*"})
 public class CurrencyServlet extends HttpServlet {
     private CurrencyService currencyService;
 
@@ -93,11 +93,11 @@ public class CurrencyServlet extends HttpServlet {
 
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        Map<String, String> queryParams = Utils.getQueryParams(req);
-        if (queryParams.get("code") == null){
+        String code = req.getPathInfo().split("/")[1];
+        if (code == null){
             resp.sendError(500, "code cannot be null");
         } else {
-            int deletedId = currencyService.deleteCurrencyByCode(queryParams.get("code"));
+            int deletedId = currencyService.deleteCurrencyByCode(code);
             resp.getWriter().write(new JSONObject("{\"id\":" + deletedId + "}").toString());
         }
 
