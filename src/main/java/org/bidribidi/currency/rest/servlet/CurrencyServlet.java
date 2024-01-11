@@ -30,7 +30,7 @@ public class CurrencyServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         if ("/currencies".equals(req.getServletPath())) {
             try {
                 resp.getWriter().write(new JSONArray(currencyService.getAllCurrencies()).toString());
@@ -109,8 +109,13 @@ public class CurrencyServlet extends HttpServlet {
         if (code == null){
             sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "code cannot be null");
         } else {
-            int deletedId = currencyService.deleteCurrencyByCode(code);
-            resp.getWriter().write(new JSONObject("{\"id\":" + deletedId + "}").toString());
+            int deletedId = 0;
+            try {
+                deletedId = currencyService.deleteCurrencyByCode(code);
+                resp.getWriter().write(new JSONObject("{\"id\":" + deletedId + "}").toString());
+            } catch (SQLException e) {
+                sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
+            }
         }
 
     }

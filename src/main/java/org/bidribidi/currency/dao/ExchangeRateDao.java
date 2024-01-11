@@ -29,7 +29,7 @@ public class ExchangeRateDao {
     """;
 
     private final Connection connection;
-    private CurrencyDao currencyDao;
+    private final CurrencyDao currencyDao;
 
     public ExchangeRateDao(Connection connection, CurrencyDao currencyDao) {
         this.connection = connection;
@@ -37,132 +37,108 @@ public class ExchangeRateDao {
     }
 
     public ExchangeRate addExchangeRate(Currency baseCurrency, Currency targetCurrency, double rate) throws SQLException {
-        try (PreparedStatement ps = connection.prepareStatement(INSERT_RATE_STATEMENT)){
-            ps.setInt(1, baseCurrency.getId());
-            ps.setInt(2, targetCurrency.getId());
-            ps.setDouble(3, rate);
-            int affectedRows = ps.executeUpdate();
-        } catch (SQLException e) {
-            throw e;
-        }
+        PreparedStatement ps = connection.prepareStatement(INSERT_RATE_STATEMENT);
+        ps.setInt(1, baseCurrency.getId());
+        ps.setInt(2, targetCurrency.getId());
+        ps.setDouble(3, rate);
+        int affectedRows = ps.executeUpdate();
+
         return new ExchangeRate(baseCurrency, targetCurrency, rate);
     }
     public List<ExchangeRate> getAllExchangeRates() throws SQLException {
         List<ExchangeRate> exchangeRates = new ArrayList<>();
-        try (PreparedStatement ps = connection.prepareStatement(SELECT_ALL_STATEMENT)) {
-            ResultSet rs = ps.executeQuery();
-            while (rs.next()) {
-                exchangeRates.add(new ExchangeRate(
-                        rs.getInt("id"),
-                        currencyDao.getCurrencyById(rs.getInt("base_currency_id")),
-                        currencyDao.getCurrencyById(rs.getInt("target_currency_id")),
-                        rs.getDouble("rate")
-                ));
-            }
-        } catch (SQLException e) {
-            throw e;
+        PreparedStatement ps = connection.prepareStatement(SELECT_ALL_STATEMENT);
+        ResultSet rs = ps.executeQuery();
+        while (rs.next()) {
+            exchangeRates.add(new ExchangeRate(
+                    rs.getInt("id"),
+                    currencyDao.getCurrencyById(rs.getInt("base_currency_id")),
+                    currencyDao.getCurrencyById(rs.getInt("target_currency_id")),
+                    rs.getDouble("rate")
+            ));
         }
+
         return exchangeRates;
     }
 
     public ExchangeRate getExchangeRateById(int id) throws SQLException {
         ExchangeRate exchangeRate;
-        try (PreparedStatement ps = connection.prepareStatement(SELECT_RATE_BY_ID_STATEMENT)) {
-            ps.setInt(1, id);
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                exchangeRate = new ExchangeRate(
-                        rs.getInt("id"),
-                        currencyDao.getCurrencyById(rs.getInt("base_currency_id")),
-                        currencyDao.getCurrencyById(rs.getInt("target_currency_id")),
-                        rs.getDouble("rate")
-                );
-            } else {
-                throw new NoSuchElementException("ExchangeRate with id " + id + " not found");
-            }
-        } catch (SQLException e) {
-            throw e;
+        PreparedStatement ps = connection.prepareStatement(SELECT_RATE_BY_ID_STATEMENT);
+        ps.setInt(1, id);
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            exchangeRate = new ExchangeRate(
+                rs.getInt("id"),
+                currencyDao.getCurrencyById(rs.getInt("base_currency_id")),
+                currencyDao.getCurrencyById(rs.getInt("target_currency_id")),
+                rs.getDouble("rate")
+            );
+        } else {
+            throw new NoSuchElementException("ExchangeRate with id " + id + " not found");
         }
 
         return exchangeRate;
     }
 
     public ExchangeRate updateExchangeRate(ExchangeRate exchangeRate) throws SQLException {
-        try(PreparedStatement ps = connection.prepareStatement(UPDATE_RATE_BY_ID_STATEMENT)) {
-            ps.setDouble(1, exchangeRate.getRate());
-            ps.setInt(2, exchangeRate.getId());
-            int affectedRows = ps.executeUpdate();
-            if (affectedRows == 0) {
-                throw new NoSuchElementException("ExchangeRate with code not found");
-            }
-
-        } catch (SQLException e) {
-            throw e;
+        PreparedStatement ps = connection.prepareStatement(UPDATE_RATE_BY_ID_STATEMENT);
+        ps.setDouble(1, exchangeRate.getRate());
+        ps.setInt(2, exchangeRate.getId());
+        int affectedRows = ps.executeUpdate();
+        if (affectedRows == 0) {
+            throw new NoSuchElementException("ExchangeRate with code not found");
         }
 
         return exchangeRate;
     }
 
     public int deleteExchangeRateById(int id) throws SQLException {
-        try (PreparedStatement ps = connection.prepareStatement(DELETE_RATE_BY_ID_STATEMENT)){
-            ps.setInt(1, id);
-            int affectedRows = ps.executeUpdate();
-            if (affectedRows == 0) {
-                throw new NoSuchElementException("ExchangeRate with id " + id + " not found");
-            }
-            return affectedRows;
-        } catch (SQLException e) {
-            throw e;
+        PreparedStatement ps = connection.prepareStatement(DELETE_RATE_BY_ID_STATEMENT);
+        ps.setInt(1, id);
+        int affectedRows = ps.executeUpdate();
+        if (affectedRows == 0) {
+            throw new NoSuchElementException("ExchangeRate with id " + id + " not found");
         }
+
+        return affectedRows;
     }
 
-    public ExchangeRate getExchangeRateByCodes(String codes) {
+    public ExchangeRate getExchangeRateByCodes(String codes) throws NoSuchElementException, SQLException {
         String baseCode = codes.substring(0, 3);
         String targetCode = codes.substring(3);
         Currency baseCurrency = currencyDao.getCurrencyByCode(baseCode);
         Currency targetCurrency = currencyDao.getCurrencyByCode(targetCode);
 
-        try(PreparedStatement ps = connection.prepareStatement(SELECT_RATE_BY_IDS_STATEMENT)) {
-            ps.setInt(1, baseCurrency.getId());
-            ps.setInt(2, targetCurrency.getId());
-            ResultSet rs = ps.executeQuery();
-            if (rs.next()) {
-                return new ExchangeRate(
-                        rs.getInt("id"),
-                        currencyDao.getCurrencyById(rs.getInt("base_currency_id")),
-                        currencyDao.getCurrencyById(rs.getInt("target_currency_id")),
-                        rs.getDouble("rate")
-                );
-            } else {
-                throw new NoSuchElementException("ExchangeRate with codes " + codes + " not found");
-            }
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchElementException e) {
-            throw new NoSuchElementException("ExchangeRate with codes " + codes + " not found");
-        }
-    }
-
-    public ExchangeRate getExchangeRateByLinkedCurrencies(Currency from, Currency to) {
-        try(PreparedStatement ps = connection.prepareStatement(SELECT_BY_LINKED_CODES)) {
-            ps.setInt(1, from.getId());
-            ps.setInt(2, to.getId());
-            ResultSet rs = ps.executeQuery();
-
-            if(rs.next()) {
-                return new ExchangeRate(
+        PreparedStatement ps = connection.prepareStatement(SELECT_RATE_BY_IDS_STATEMENT);
+        ps.setInt(1, baseCurrency.getId());
+        ps.setInt(2, targetCurrency.getId());
+        ResultSet rs = ps.executeQuery();
+        if (rs.next()) {
+            return new ExchangeRate(
                     rs.getInt("id"),
                     currencyDao.getCurrencyById(rs.getInt("base_currency_id")),
                     currencyDao.getCurrencyById(rs.getInt("target_currency_id")),
                     rs.getDouble("rate")
-                );
-            } else {
-                throw new NoSuchElementException("ExchangeRate with codes " + from.getCode() + " and " + to.getCode() + " not found");
-            }
+            );
+        } else {
+            throw new NoSuchElementException("ExchangeRate with codes " + codes + " not found");
+        }
+    }
 
-        } catch (SQLException e) {
-            throw new RuntimeException(e);
-        } catch (NoSuchElementException e) {
+    public ExchangeRate getExchangeRateByLinkedCurrencies(Currency from, Currency to) throws NoSuchElementException, SQLException {
+        PreparedStatement ps = connection.prepareStatement(SELECT_BY_LINKED_CODES);
+        ps.setInt(1, from.getId());
+        ps.setInt(2, to.getId());
+        ResultSet rs = ps.executeQuery();
+
+        if(rs.next()) {
+            return new ExchangeRate(
+                rs.getInt("id"),
+                currencyDao.getCurrencyById(rs.getInt("base_currency_id")),
+                currencyDao.getCurrencyById(rs.getInt("target_currency_id")),
+                rs.getDouble("rate")
+            );
+        } else {
             throw new NoSuchElementException("ExchangeRate with codes " + from.getCode() + " and " + to.getCode() + " not found");
         }
     }

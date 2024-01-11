@@ -40,11 +40,11 @@ public class CurrencyService {
         return currencyDao.updateCurrency(id, currencyRequest);
     }
 
-    public int deleteCurrency(int id) {
+    public int deleteCurrency(int id) throws SQLException {
         return currencyDao.deleteCurrency(id);
     }
 
-    public int deleteCurrencyByCode(String code) {
+    public int deleteCurrencyByCode(String code) throws SQLException {
         isValidCode(code);
         return currencyDao.deleteCurrencyByCode(code);
     }

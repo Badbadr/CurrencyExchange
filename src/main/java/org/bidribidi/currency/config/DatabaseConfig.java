@@ -3,6 +3,7 @@ package org.bidribidi.currency.config;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Objects;
 
 public class DatabaseConfig {
 
@@ -13,7 +14,7 @@ public class DatabaseConfig {
     public DatabaseConfig() {
         try {
             Class.forName("org.sqlite.JDBC");
-            String path = getClass().getClassLoader().getResource(DATABASE).getPath();
+            String path = Objects.requireNonNull(getClass().getClassLoader().getResource(DATABASE)).getPath();
             connection = DriverManager.getConnection(URL_PREFIX + path);
             System.out.println("Connection to SQLite has been established.");
         } catch (ClassNotFoundException e) {
