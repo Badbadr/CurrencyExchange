@@ -22,16 +22,9 @@ import java.util.Map;
 @WebServlet(urlPatterns = {"/exchangeRate/*", "/exchangeRates", "/exchangeRates/*"})
 public class ExchangeRateServlet extends HttpServlet {
 
-    private ExchangeRateService exchangeRateService;
+    private final ExchangeRateService exchangeRateService = new ExchangeRateService();
 
-    @Override
-    public void init() throws ServletException {
-        super.init();
-        DatabaseConfig databaseConfig = new DatabaseConfig();
-        CurrencyDao currencyDao = new CurrencyDao(databaseConfig.getConnection());
-        ExchangeRateDao exchangeRateDao = new ExchangeRateDao(databaseConfig.getConnection(), currencyDao);
-        this.exchangeRateService = new ExchangeRateService(exchangeRateDao,
-                new CurrencyService(currencyDao));
+    public ExchangeRateServlet() throws SQLException {
     }
 
     @Override

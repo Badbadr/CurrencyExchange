@@ -20,13 +20,9 @@ import static org.bidribidi.currency.rest.servlet.Utils.sendError;
 
 @WebServlet(urlPatterns = {"/currency/*", "/currencies", "/currencies/*"})
 public class CurrencyServlet extends HttpServlet {
-    private CurrencyService currencyService;
+    private final CurrencyService currencyService = new CurrencyService();
 
-    @Override
-    public void init() throws ServletException {
-        super.init();
-        DatabaseConfig databaseConfig = new DatabaseConfig();
-        this.currencyService = new CurrencyService(new CurrencyDao(databaseConfig.getConnection()));
+    public CurrencyServlet() throws SQLException {
     }
 
     @Override

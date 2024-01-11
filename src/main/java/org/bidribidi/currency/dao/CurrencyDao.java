@@ -1,5 +1,6 @@
 package org.bidribidi.currency.dao;
 
+import org.bidribidi.currency.config.DatabaseConfig;
 import org.bidribidi.currency.dto.CurrencyRequest;
 import org.bidribidi.currency.model.Currency;
 
@@ -21,10 +22,9 @@ public class CurrencyDao {
     private final static String DELETE_CURRENCY_BY_CODE_STATEMENT = "delete from currencies where code = ?";
     private final static String DELETE_CURRENCY_BY_ID_STATEMENT = "delete from currencies where id = ?";
     private final static String ENABLE_FOREIGN_KEYS_STATEMENT = "PRAGMA foreign_keys = on;";
-    private final Connection connection;
+    private final Connection connection = DatabaseConfig.getConnection();
 
-    public CurrencyDao(Connection connection) {
-        this.connection = connection;
+    public CurrencyDao() throws SQLException {
     }
 
     public Currency addCurrency(CurrencyRequest currencyRequest) throws SQLException {

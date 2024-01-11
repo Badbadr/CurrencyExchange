@@ -14,12 +14,10 @@ import static org.bidribidi.currency.service.validators.ExchangeRateValidator.va
 
 public class ExchangeRateService {
 
-    private final ExchangeRateDao exchangeRateDao;
-    private final CurrencyService currencyService;
+    private final ExchangeRateDao exchangeRateDao = new ExchangeRateDao();
+    private final CurrencyService currencyService = new CurrencyService();
 
-    public ExchangeRateService(ExchangeRateDao exchangeRateDao, CurrencyService currencyService) {
-        this.exchangeRateDao = exchangeRateDao;
-        this.currencyService = currencyService;
+    public ExchangeRateService() throws SQLException {
     }
 
     public ExchangeRate getExchangeRateById(int id) throws SQLException {

@@ -1,5 +1,6 @@
 package org.bidribidi.currency.dao;
 
+import org.bidribidi.currency.config.DatabaseConfig;
 import org.bidribidi.currency.model.Currency;
 import org.bidribidi.currency.model.ExchangeRate;
 
@@ -28,12 +29,10 @@ public class ExchangeRateDao {
             and er2.target_currency_id = ?
     """;
 
-    private final Connection connection;
-    private final CurrencyDao currencyDao;
+    private final Connection connection = DatabaseConfig.getConnection();
+    private final CurrencyDao currencyDao = new CurrencyDao();
 
-    public ExchangeRateDao(Connection connection, CurrencyDao currencyDao) {
-        this.connection = connection;
-        this.currencyDao = currencyDao;
+    public ExchangeRateDao() throws SQLException {
     }
 
     public ExchangeRate addExchangeRate(Currency baseCurrency, Currency targetCurrency, double rate) throws SQLException {

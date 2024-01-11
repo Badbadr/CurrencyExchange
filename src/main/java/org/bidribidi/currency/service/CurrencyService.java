@@ -12,11 +12,9 @@ import static org.bidribidi.currency.service.validators.CurrencyValidator.valida
 
 public class CurrencyService {
 
-    private final CurrencyDao currencyDao;
+    private final CurrencyDao currencyDao = new CurrencyDao();
 
-    public CurrencyService(CurrencyDao currencyDao) {
-        this.currencyDao = currencyDao;
-    }
+    public CurrencyService() throws SQLException {}
     public Currency getCurrencyById(int id) throws SQLException {
         return currencyDao.getCurrencyById(id);
     }
