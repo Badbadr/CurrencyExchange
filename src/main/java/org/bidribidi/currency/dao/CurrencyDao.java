@@ -28,26 +28,28 @@ public class CurrencyDao {
     }
 
     public Currency addCurrency(CurrencyRequest currencyRequest) throws SQLException {
-        PreparedStatement ps = connection.prepareStatement(INSERT_CURRENCY_STATEMENT);
-        ps.setString(1, currencyRequest.code());
-        ps.setString(2, currencyRequest.fullname());
-        ps.setString(3, currencyRequest.sign());
-        int affectedRows = ps.executeUpdate();
+        try (PreparedStatement ps = connection.prepareStatement(INSERT_CURRENCY_STATEMENT)) {
+            ps.setString(1, currencyRequest.code());
+            ps.setString(2, currencyRequest.fullname());
+            ps.setString(3, currencyRequest.sign());
+            int affectedRows = ps.executeUpdate();
+        }
 
         return new Currency(currencyRequest);
     }
 
     public List<Currency> getAllCurrencies() throws SQLException {
         List<Currency> currencies = new ArrayList<>();
-        PreparedStatement ps = connection.prepareStatement(SELECT_ALL_STATEMENT);
-        ResultSet rs = ps.executeQuery();
-        while (rs.next()) {
-            currencies.add(new Currency(
-                rs.getInt("id"),
-                rs.getString("code"),
-                rs.getString("fullname"),
-                rs.getString("sign")
-            ));
+        try(PreparedStatement ps = connection.prepareStatement(SELECT_ALL_STATEMENT)) {
+            ResultSet rs = ps.executeQuery();
+            while (rs.next()) {
+                currencies.add(new Currency(
+                        rs.getInt("id"),
+                        rs.getString("code"),
+                        rs.getString("fullname"),
+                        rs.getString("sign")
+                ));
+            }
         }
 
         return currencies;
@@ -55,77 +57,82 @@ public class CurrencyDao {
 
     public Currency getCurrencyById(int id) throws NoSuchElementException, SQLException {
         Currency currency;
-        PreparedStatement ps = connection.prepareStatement(SELECT_CURRENCY_BY_ID_STATEMENT);
-        ps.setInt(1, id);
-        ResultSet rs = ps.executeQuery();
-        if (rs.next()) {
-            currency = new Currency(
-                rs.getInt("id"),
-                rs.getString("code"),
-                rs.getString("fullname"),
-                rs.getString("sign")
-            );
-        } else {
-            throw new NoSuchElementException("Currency with id " + id + " not found");
+        try(PreparedStatement ps = connection.prepareStatement(SELECT_CURRENCY_BY_ID_STATEMENT)) {
+            ps.setInt(1, id);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                currency = new Currency(
+                        rs.getInt("id"),
+                        rs.getString("code"),
+                        rs.getString("fullname"),
+                        rs.getString("sign")
+                );
+            } else {
+                throw new NoSuchElementException("Currency with id " + id + " not found");
+            }
         }
 
         return currency;
     }
 
     public Currency updateCurrency(int id, CurrencyRequest currencyRequest) throws NoSuchElementException, SQLException {
-        PreparedStatement ps = connection.prepareStatement(UPDATE_CURRENCY_BY_ID_STATEMENT);
-        ps.setString(1, currencyRequest.code());
-        ps.setString(2, currencyRequest.fullname());
-        ps.setString(3, currencyRequest.sign());
-        ps.setInt(4, id);
-        int affectedRows = ps.executeUpdate();
-        if (affectedRows == 0) {
-            throw new NoSuchElementException("Currency with id " + id + " not found");
+        try (PreparedStatement ps = connection.prepareStatement(UPDATE_CURRENCY_BY_ID_STATEMENT)) {
+            ps.setString(1, currencyRequest.code());
+            ps.setString(2, currencyRequest.fullname());
+            ps.setString(3, currencyRequest.sign());
+            ps.setInt(4, id);
+            int affectedRows = ps.executeUpdate();
+            if (affectedRows == 0) {
+                throw new NoSuchElementException("Currency with id " + id + " not found");
+            }
         }
         return new Currency(id, currencyRequest);
     }
 
     public int deleteCurrency(int id) throws NoSuchElementException, SQLException {
         enableForeignKeys();
-        PreparedStatement ps = connection.prepareStatement(DELETE_CURRENCY_BY_ID_STATEMENT);
-        ps.setInt(1, id);
-        int affectedRows = ps.executeUpdate();
-        if (affectedRows == 0) {
-            throw new NoSuchElementException("Currency with id " + id + " not found");
+        try(PreparedStatement ps = connection.prepareStatement(DELETE_CURRENCY_BY_ID_STATEMENT)) {
+            ps.setInt(1, id);
+            int affectedRows = ps.executeUpdate();
+            if (affectedRows == 0) {
+                throw new NoSuchElementException("Currency with id " + id + " not found");
+            }
         }
-
         return id;
     }
 
     public Currency getCurrencyByCode(String code) throws NoSuchElementException, SQLException {
-        PreparedStatement ps = connection.prepareStatement(SELECT_CURRENCY_BY_CODE_STATEMENT);
-        ps.setString(1, code);
-        ResultSet rs = ps.executeQuery();
-        if (rs.next()) {
-            return new Currency(
-                rs.getInt("id"),
-                rs.getString("code"),
-                rs.getString("fullname"),
-                rs.getString("sign")
-            );
-        } else {
-            throw new NoSuchElementException("Currency with code " + code + " not found");
+        try(PreparedStatement ps = connection.prepareStatement(SELECT_CURRENCY_BY_CODE_STATEMENT)) {
+            ps.setString(1, code);
+            ResultSet rs = ps.executeQuery();
+            if (rs.next()) {
+                return new Currency(
+                        rs.getInt("id"),
+                        rs.getString("code"),
+                        rs.getString("fullname"),
+                        rs.getString("sign")
+                );
+            } else {
+                throw new NoSuchElementException("Currency with code " + code + " not found");
+            }
         }
     }
 
     public int deleteCurrencyByCode(String code) throws NoSuchElementException, SQLException {
         enableForeignKeys();
-        PreparedStatement ps = connection.prepareStatement(DELETE_CURRENCY_BY_CODE_STATEMENT);
-        ps.setString(1, code);
-        int affectedRows = ps.executeUpdate();
-        if (affectedRows == 0) {
-            throw new NoSuchElementException("Currency with code " + code + " not found");
+        try(PreparedStatement ps = connection.prepareStatement(DELETE_CURRENCY_BY_CODE_STATEMENT)) {
+            ps.setString(1, code);
+            int affectedRows = ps.executeUpdate();
+            if (affectedRows == 0) {
+                throw new NoSuchElementException("Currency with code " + code + " not found");
+            }
         }
         return 1;
     }
 
     private void enableForeignKeys() throws SQLException {
-        PreparedStatement ps = connection.prepareStatement(ENABLE_FOREIGN_KEYS_STATEMENT);
-        ps.executeUpdate();
+        try(PreparedStatement ps = connection.prepareStatement(ENABLE_FOREIGN_KEYS_STATEMENT)) {
+            ps.executeUpdate();
+        }
     }
 }
