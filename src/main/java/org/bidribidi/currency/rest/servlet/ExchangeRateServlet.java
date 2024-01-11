@@ -1,4 +1,4 @@
-package org.bidribidi.currency.servlet;
+package org.bidribidi.currency.rest.servlet;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -8,7 +8,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import org.bidribidi.currency.config.DatabaseConfig;
 import org.bidribidi.currency.dao.CurrencyDao;
 import org.bidribidi.currency.dao.ExchangeRateDao;
-import org.bidribidi.currency.dto.ErrorResponse;
 import org.bidribidi.currency.dto.ExchangeRateRequest;
 import org.bidribidi.currency.model.ExchangeRate;
 import org.bidribidi.currency.service.CurrencyService;
@@ -41,28 +40,28 @@ public class ExchangeRateServlet extends HttpServlet {
             try {
                 resp.getWriter().write(new JSONArray(exchangeRateService.getAllExchangeRates()).toString());
             } catch (SQLException ex) {
-                throw new RuntimeException(ex);
+                Utils.sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, ex.getMessage());
             }
         } else {
             String queryParams = req.getQueryString();
             if (queryParams == null) {
-                throw new IllegalArgumentException("queryParams are required");
+                Utils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "queryParams are required");
             }
             Map<String, String> queryParamsMap = Utils.getQueryParams(req);
 
             if (queryParamsMap.size() > 1) {
-                throw new IllegalArgumentException("Too many query parameters");
+                Utils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "Too many query parameters");
             }
 
             if (queryParamsMap.size() == 0) {
                 String codes = req.getPathInfo().split("/")[1];
                 if (codes == null) {
-                    throw new IllegalArgumentException("codes are required");
+                    Utils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "codes are required");
                 }
-                try {
+                try {;
                     resp.getWriter().write(new JSONObject(exchangeRateService.getExchangeRateByCodes(codes)).toString());
                 } catch (SQLException e) {
-                    throw new RuntimeException(e);
+                    Utils.sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
                 }
             } else {
                 String id = queryParamsMap.get("id");
@@ -72,17 +71,16 @@ public class ExchangeRateServlet extends HttpServlet {
 
                 if (id != null) {
                     try {
-                        resp.getWriter().write(new JSONObject(exchangeRateService.getExchangeRateById(Integer.parseInt(id)))
-                                .toString());
-                    } catch (SQLException ex) {
-                        throw new RuntimeException(ex);
+                        resp.getWriter().write(new JSONObject(exchangeRateService.getExchangeRateById(Integer.parseInt(id))).toString());
+                    } catch (SQLException e) {
+                        Utils.sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
                     }
                 } else if (baseCurrencyId != null) {
-                    throw new IllegalArgumentException("get by baseCurrencyId not implemented yet");
+                    Utils.sendError(resp, HttpServletResponse.SC_NOT_IMPLEMENTED, "get by baseCurrencyId not implemented yet");
                 } else if (targetCurrencyId != null) {
-                    throw new IllegalArgumentException("get by targetCurrencyId not implemented yet");
+                    Utils.sendError(resp, HttpServletResponse.SC_NOT_IMPLEMENTED, "get by targetCurrencyId not implemented yet");
                 } else if (rate != null) {
-                    throw new IllegalArgumentException("get by rate not implemented yet");
+                    Utils.sendError(resp, HttpServletResponse.SC_NOT_IMPLEMENTED, "get by rate not implemented yet");
                 }
             }
         }
@@ -92,39 +90,24 @@ public class ExchangeRateServlet extends HttpServlet {
     protected void doPatch(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String codes = req.getPathInfo().split("/")[1];
         if (codes == null) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write(new JSONObject(
-                    new ErrorResponse(HttpServletResponse.SC_BAD_REQUEST, "codes are required")
-            ).toString());
+            Utils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "codes are required");
         }
         try {
             ExchangeRate exchangeRate = exchangeRateService.getExchangeRateByCodes(codes);
             String payload = Utils.getBody(req);
             String key = payload.split("=")[0];
             if (!key.equals("rate")) {
-                resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-                resp.getWriter().write(new JSONObject(
-                        new ErrorResponse(HttpServletResponse.SC_BAD_REQUEST, "key must be rate")
-                ).toString());
+                Utils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "key must be rate");
             }
             double value = Double.parseDouble(payload.split("=")[1]);
             exchangeRate.setRate(value);
             resp.getWriter().write(new JSONObject(exchangeRateService.updateExchangeRate(exchangeRate)).toString());
         } catch (SQLException e) {
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write(new JSONObject(
-                    new ErrorResponse(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage())
-            ).toString());
+            Utils.sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         } catch (NumberFormatException e3) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write(new JSONObject(
-                    new ErrorResponse(HttpServletResponse.SC_BAD_REQUEST, "rate must be a number")
-            ).toString());
+            Utils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "rate must be a number");
         } catch (IllegalArgumentException e2) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write(new JSONObject(
-                    new ErrorResponse(HttpServletResponse.SC_BAD_REQUEST, e2.getMessage())
-            ).toString());
+            Utils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, e2.getMessage());
         }
     }
 
@@ -138,15 +121,9 @@ public class ExchangeRateServlet extends HttpServlet {
             );
             resp.getWriter().write(new JSONObject(exchangeRateService.addExchangeRate(exchangeRateRequest)).toString());
         } catch (NumberFormatException e) {
-            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-            resp.getWriter().write(new JSONObject(
-                new ErrorResponse(HttpServletResponse.SC_BAD_REQUEST, "rate must be a number")
-            ).toString());
+            Utils.sendError(resp, HttpServletResponse.SC_BAD_REQUEST, "rate must be a number");
         } catch (SQLException e2) {
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
-            resp.getWriter().write(new JSONObject(
-                    new ErrorResponse(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e2.getMessage())
-            ).toString());
+            Utils.sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e2.getMessage());
         }
     }
 
@@ -171,7 +148,7 @@ public class ExchangeRateServlet extends HttpServlet {
                 resp.getWriter().write(new JSONObject("{\"id\":" + deletedId + "}").toString());
             }
         } catch (SQLException e) {
-            throw new RuntimeException(e);
+            Utils.sendError(resp, HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
         }
     }
 
@@ -182,10 +159,5 @@ public class ExchangeRateServlet extends HttpServlet {
         } else {
             this.doPatch(req, res);
         }
-
-        res.addHeader("Access-Control-Allow-Origin", "http://localhost");
-        res.addHeader("Access-Control-Allow-Headers", "Content-Type");
-        res.addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, PATCH, OPTIONS");
-        res.addHeader("Content-Type", "application/json");
     }
 }

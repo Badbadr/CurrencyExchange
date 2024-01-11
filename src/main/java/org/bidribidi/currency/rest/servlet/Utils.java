@@ -1,6 +1,9 @@
-package org.bidribidi.currency.servlet;
+package org.bidribidi.currency.rest.servlet;
 
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import org.bidribidi.currency.dto.ErrorResponse;
+import org.json.JSONObject;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -33,8 +36,6 @@ public class Utils {
                     stringBuilder.append(charBuffer, 0, bytesRead);
                 }
             }
-        } catch (IOException ex) {
-            throw ex;
         } finally {
             if (bufferedReader != null) {
                 bufferedReader.close();
@@ -43,5 +44,11 @@ public class Utils {
 
         body = stringBuilder.toString();
         return body;
+    }
+
+
+    public static void sendError(HttpServletResponse resp, int code, String message) throws IOException {
+        resp.setStatus(code);
+        resp.getWriter().write(new JSONObject(new ErrorResponse(code, message)).toString());
     }
 }
