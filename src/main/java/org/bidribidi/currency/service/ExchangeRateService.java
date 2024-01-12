@@ -70,9 +70,8 @@ public class ExchangeRateService {
         }
 
         try {
-            Currency fromCurrency = currencyService.getCurrencyByCode(fromCode);
-            Currency toCurrency = currencyService.getCurrencyByCode(toCode);
-            exchangeRate = exchangeRateDao.getExchangeRateByLinkedCurrencies(fromCurrency, toCurrency);
+            exchangeRate = getExchangeRateByCodes(toCode + fromCode);
+            exchangeRate.setRate(1.0 / exchangeRate.getRate());
             return exchangeRate;
         } catch (NoSuchElementException e) {
             System.out.println("No reversed exchange rate. Trying to get indirect exchange rate.");
