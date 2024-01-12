@@ -125,6 +125,8 @@ public class ExchangeRateDao {
             } else {
                 throw new NoSuchElementException("ExchangeRate with codes " + codes + " not found");
             }
+        } catch (NoSuchElementException e) {
+            throw new NoSuchElementException("ExchangeRate with codes " + codes + " not found");
         }
     }
 
